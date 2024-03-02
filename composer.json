@@ -1,0 +1,26 @@
+{
+  "name": "mannycrafts/word-press-dev-unstuck",
+  "description": "WordPress and tooling experiments",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Manny Adumbire",
+      "email": "manny@devunstuck.com"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/DevUnstuck/multisite-oversight"
+    }
+  ],
+  "require": {
+    "devunstuck/multisite-oversight": "dev-test"
+  },
+  "config": {
+    "preferred-install": "source",
+    "allow-plugins": {
+      "composer/satis": true
+    }
+  }
+}

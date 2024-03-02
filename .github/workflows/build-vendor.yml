@@ -1,0 +1,35 @@
+name: Build and Commit Vendor Files
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    if: "!contains(github.ref, '-build')"  # Skip runs triggered by '-build' branches
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+
+    - name: Install Composer dependencies
+      run: composer install --ignore-platform-reqs --no-interaction --prefer-dist
+
+    - name: Build vendor files
+      run: composer dump-autoload --optimize --no-dev
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+        git checkout -b ${{ github.ref }}-build
+        git add -A
+        git commit -m "Build vendor files"
+        git push origin ${{ github.ref }}-build
