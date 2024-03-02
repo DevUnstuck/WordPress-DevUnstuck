@@ -15,7 +15,7 @@
     }
   ],
   "require": {
-    "devunstuck/multisite-oversight": "dev-test"
+    "devunstuck/multisite-oversight": "dev-check"
   },
   "config": {
     "preferred-install": "source",

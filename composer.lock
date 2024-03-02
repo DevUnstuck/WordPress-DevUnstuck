@@ -4,11 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3bb3471a7479b7267dae2d41f7beb7f5",
+    "content-hash": "c366507d8adda89b19de1522e4df926d",
     "packages": [
         {
             "name": "devunstuck/multisite-oversight",
-            "version": "dev-test",
+            "version": "dev-check",
             "source": {
                 "type": "git",
                 "url": "git@github.com:DevUnstuck/multisite-oversight.git",
@@ -38,7 +38,7 @@
             ],
             "description": "wordpress-plugin",
             "support": {
-                "source": "https://github.com/DevUnstuck/multisite-oversight/tree/main",
+                "source": "https://github.com/DevUnstuck/multisite-oversight/tree/check",
                 "issues": "https://github.com/DevUnstuck/multisite-oversight/issues"
             },
             "time": "2023-07-25T01:39:03+00:00"

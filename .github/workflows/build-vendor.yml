@@ -37,4 +37,4 @@ jobs:
         git checkout -b ${{ github.ref_name }}-build
         git add -f vendor
         git commit -m "Build vendor files"
-        git push origin ${{ github.ref_name }}-build
+        git push --force origin ${{ github.ref_name }}-build
