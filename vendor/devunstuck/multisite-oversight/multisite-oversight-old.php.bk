@@ -1,0 +1,391 @@
+<?php
+/*
+Multisite Oversight is a plugin that provides a report of all plugins and themes active across a multisite network.
+Plugin and Theme Usage: Provides an overview of the plugins and themes installed on the network, and details which of them are active on each site. This can include the number of sites a particular plugin or theme is active on, as well as which versions of each plugin or theme are in use.
+
+Plugin Dependencies: 
+Outlines any dependencies between plugins. Some plugins require others to function correctly, and this report will help you understand these relationships to avoid breaking functionality by deactivating or removing a necessary plugin.
+
+Last Update and Compatibility:
+ Gives details about the last time each plugin or theme was updated, and their compatibility with the current WordPress version. This is important for security and performance reasons as outdated plugins or themes might have vulnerabilities or may not be optimized for the latest WordPress version.
+
+Custom Widgets and Shortcodes Usage:
+ Provides a report on which custom widgets and shortcodes, provided by these plugins or themes, are used on each site.
+
+Admin Menu Items:
+ Details the admin menu items added by each plugin or theme, giving you a clear picture of the impact each one has on the admin dashboard's user interface.
+
+Registered Post Types and Taxonomies:
+ Lists any custom post types or taxonomies registered by each plugin, giving a deeper understanding of how each plugin interacts with the WordPress content structure.
+
+Database Impact:
+ Indicates the number of options, meta fields, or custom tables each plugin or theme adds to the database, helping assess the impact on the website's performance and database size
+*/
+/*
+Plugin Name: Multisite Oversight
+Description: Multisite plugin and theme usage reporting tool.
+Version:     1.0
+Author:      Your Name
+Author URI:  http://example.com
+*/
+
+// use function Patchwork\{redefine, relay, getMethod};
+
+// Prevent direct access to file.
+if (!defined('ABSPATH')) {
+	exit; // Exit if accessed directly.
+}
+
+// admin menu setup vars.
+$test_fn = null;
+// Save/Copy the function that will be redefined. Do this as early as possible.
+function create_closure()
+{
+	global $get_original_submenu_page;
+	global $get_original_menu_page;
+	$get_original_submenu_page = Closure::fromCallable('add_submenu_page');
+	$get_original_menu_page = Closure::fromCallable('add_menu_page');
+}
+add_action('admin_menu', 'create_closure', -1);
+// Store infromation about the responsible plugin or theme for each menu item.
+
+/**
+ * Replace add_submenu_page() with a closure, in order to track the plugin or theme that registered the menu item.
+ * Ideally only run this on the admin_menu hook.
+ *
+ * @return void
+ */
+function reflect_registered_section() {
+
+	global $get_original_submenu_page;
+	global $get_original_menu_page;
+	$admin_submenu_wrapper_fn = function ($parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null) use ($get_original_submenu_page) {
+			 
+			// Perform additional processing to get menu item details.
+			if( is_callable(  $callback ) ) {
+
+				$get_inner_cb_fn = function() use ($callback){
+					ob_start();
+					@Closure::fromCallable( $callback )();
+					$menu_html = ob_get_clean();
+					return Closure::fromCallable( $callback );
+				};
+
+				// $callback_fn = Closure::fromCallable( $callback );
+				ob_start();
+				// Run the original fn.
+				call_user_func_array($get_original_submenu_page, func_get_args());
+				$menu_html = ob_get_clean();
+
+				 // Resolve the callback function name.
+				 $callback_fn_name = get_callable_name( $callback );
+
+				 // Run the appropriate redefine function.
+				 if( ! empty($callback_fn_name['class']) ){
+					// runkit7_method_redefine($callback_fn_name['class'], $callback_fn_name['method'], $get_inner_cb_fn()  );
+				 }else{
+					// runkit7_function_redefine( $callback_fn_name['method'], $get_inner_cb_fn() ); 
+				}
+				 if( !empty( $menu_html ) ) {
+					// runkit7_method_redefine( 
+					$dom = new DOMDocument( LIBXML_NOERROR);
+					$dom->loadHTML(mb_convert_encoding($menu_html, 'utf8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+					// Find the first container( non-text , non-header etc.) element that is not <html> or <body>
+					$xpath = new DOMXPath($dom);
+					$query = "//*[not(self::text() or self::comment() or self::script or self::style or self::html or self::head or self::body or self::meta or self::link or self::title or self::base)]";
+					$result = $xpath->query($query);
+					$container = $result->item(0);
+					 // Store the menu HTML in a transient.
+					// Store the menu HTML in a transient.
+			}
+		}
+	};
+	$admin_menu_wrapper_fn = function ( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '', $position = null )  use ($get_original_menu_page) {
+			// Run the original
+			
+			 
+			// Perform additional processing to get menu item details.
+			if( is_callable(  $callback ) ) {
+				$get_inner_cb_fn = function() use ($callback){
+					return Closure::fromCallable( $callback );
+				};
+
+				// $callback_fn = Closure::fromCallable( $callback );
+				$menu_hook = call_user_func_array($get_original_menu_page, func_get_args());
+
+				 // Resolve the callback function name.
+				 $callback_fn_name = get_callable_name( $callback );
+
+				 // Run the appropriate redefine function.
+				 if( ! empty($callback_fn_name['class']) ){
+					runkit7_method_redefine($callback_fn_name['class'], $callback_fn_name['method'], $get_inner_cb_fn()  );
+				 }else{
+					runkit7_function_redefine( $callback_fn_name['method'], $get_inner_cb_fn() ); 
+				}
+				 if( !empty( $menu_html ) ) {
+					// runkit7_method_redefine( 
+					$dom = new DOMDocument( LIBXML_NOERROR);
+					$dom->loadHTML(mb_convert_encoding($menu_html, 'utf8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+					// Find the first container( non-text , non-header etc.) element that is not <html> or <body>
+					$xpath = new DOMXPath($dom);
+					$query = "//*[not(self::text() or self::comment() or self::script or self::style or self::html or self::head or self::body or self::meta or self::link or self::title or self::base)]";
+					$result = $xpath->query($query);
+					$container = $result->item(0);
+					 // Store the menu HTML in a transient.
+					// Store the menu HTML in a transient.
+			}
+		}
+		return $menu_hook;
+	};
+	runkit7_function_redefine( 'add_submenu_page', $admin_submenu_wrapper_fn);
+	runkit7_function_redefine( 'add_menu_page', $admin_menu_wrapper_fn);
+}
+	// redefine 'add_submenu_page' as a catch all for all submenu pages.
+add_action('admin_menu', 'reflect_registered_section', 1);
+
+function menu_husk(){
+
+}
+
+// admin menu render output.
+$test_admin_render = null;
+// This is the function that will be redefined. Create it as early as possible.
+function create_closure_admin_render()
+{
+	global $test_admin_render, $wp_admin_bar;
+	$test_admin_render = function () use ($wp_admin_bar) {
+					ob_start();
+					@Closure::fromCallable( $callback )();
+					$menu_html = ob_get_clean();
+		return Closure::fromCallable([$wp_admin_bar, '_render']);
+	};
+}
+// add_action('admin_bar_init', 'create_closure_admin_render', -1);
+
+function render_admin_menu_wrapper()
+{
+
+	global $test_admin_render;
+
+	// redefine 'add_submenu_page' as a catch all for all submenu pages.
+	runkit7_method_redefine(
+		'WP_Admin_Bar',
+		'_render',
+		function ($root) use ($test_admin_render) {
+			if (empty($root->children)) {
+				// error_log(print_r($root, true));
+			}
+		}
+	);
+}
+// add_action('admin_bar_init', 'render_admin_menu_wrapper', 1);
+
+// add_action('admin_menu', 'track_registered_section', 3);
+
+// Register the widget_usage post type, using regular post as a base.
+function register_widget_usage_post_type()
+{
+	register_post_type(
+		'widget_usage',
+		array(
+			'label' => __('Widget Usage', 'multisite-oversight'),
+			'public' => true,
+		)
+	);
+}
+add_action('init', 'register_widget_usage_post_type');
+
+
+
+// set capabilites for widget_usage post type. using post as a base.
+function set_widget_usage_capabilities()
+{
+	$role = get_role('administrator');
+	$role->add_cap('edit_widget_usage');
+	$role->add_cap('edit_widget_usages');
+	$role->add_cap('edit_others_widget_usages');
+	$role->add_cap('publish_widget_usages');
+	$role->add_cap('read_widget_usage');
+	$role->add_cap('read_private_widget_usages');
+	$role->add_cap('delete_widget_usage');
+}
+add_action('admin_init', 'set_widget_usage_capabilities');
+
+
+// Check if the class already exists before defining it
+if (!class_exists('Multisite_Oversight')):
+
+	class Multisite_Oversight
+	{
+
+		// Constructor function called when the plugin is activated
+		public function __construct()
+		{
+			// Check if the site is a multisite installation before proceeding
+			if (is_multisite()) {
+				// Attach the add_plugin_page function to the network_admin_menu hook
+				add_action('network_admin_menu', array($this, 'add_plugin_page'));
+			}
+		}
+
+		// Function to add a page to the network admin menu
+		public function add_plugin_page()
+		{
+			// Use the add_submenu_page function to add a new submenu under Settings
+			add_submenu_page(
+				'settings.php',
+				__('Multisite Oversight', 'multisite-oversight'),
+				// Page title
+				__('Multisite Oversight', 'multisite-oversight'),
+				// Menu title
+				'manage_options',
+				// Capability required to see the menu item
+				'multisite-oversight',
+				// Unique slug for the menu item
+				array($this, 'output_report') // Function to call when this menu item is accessed
+			);
+		}
+
+		// Function to generate the report
+		public function output_report()
+		{
+			echo 'here';
+			// TODO: Add logic to generate the report.
+			// This could include the following steps:
+			// - Loop over each site in the network using get_sites()
+			// - For each site, gather data about active plugins and themes
+			// - Check for plugin dependencies
+			// - Write this data to a CSV file
+			// - Provide a way for the user to download the CSV file
+		}
+		// Function to determine widget usage across the multisite network
+		public function detect_widget_usage()
+		{
+			// TODO: Add logic to detect widget usage across all subsites.
+
+			// This could include the following steps:
+
+			// 1. Loop over each site in the network using get_sites()
+			foreach (get_sites() as $site) {
+				// Switch to the current site's context
+				switch_to_blog($site->blog_id);
+
+				// Fetch the active widgets
+				$active_widgets = get_option('sidebars_widgets');
+
+				// Fetch the list of registered sidebars
+				$registered_sidebars = wp_get_sidebars_widgets();
+
+				//    Note: The data is stored in a serialized format and needs to be unserialized.
+				$active_widgets = maybe_unserialize($active_widgets);
+
+				// Loop through each registered sidebar
+				foreach ($registered_sidebars as $sidebar => $widgets) {
+					// Loop through each widget instance
+					foreach ($widgets as $widget) {
+						// Record the widget's usage.
+						$widget_usage = array(
+							'sidebar' => $sidebar,
+							'widget' => $widget,
+						);
+
+						// Fetch the widget's settings
+						$widget_settings = get_option('widget_' . $widget);
+						echo $widget_settings;
+
+						// Store the data in the database.
+						$widget_usage_id = wp_insert_post(
+							array(
+								'post_type' => 'widget_usage',
+								'post_title' => $widget_usage['widget'],
+								'post_status' => 'publish',
+							)
+						);
+
+						// Add the sidebar and widget data as post meta.
+						update_post_meta($widget_usage_id, 'sidebar', $widget_usage['sidebar']);
+						update_post_meta($widget_usage_id, 'widget', $widget_usage['widget']);
+					}
+				}
+			}
+			// 7. Once you're done with a site, make sure to restore the original blog context using restore_current_blog().
+			//    This ensures that subsequent code doesn't unintentionally run in the context of the wrong site.
+
+			// 8. Repeat the process for each site in the network.
+			//    By the end of this process, you should have a complete record of widget usage across the entire network, including any non-standard widget areas registered by plugins or themes.
+
+			// Remember, this can be a resource-intensive process, especially for large networks.
+			// Consider implementing some form of caching or batching to improve performance.
+		}
+	}
+
+endif;
+
+// Function to instantiate and return a new Multisite_Oversight object
+function Multisite_Oversight()
+{
+	return new Multisite_Oversight();
+}
+
+// Call the above function to instantiate the Multisite_Oversight object
+Multisite_Oversight();
+
+//    Note: This function is only available in WordPress 4.6 and above.
+//    Switch to each site's context using switch_to_blog().
+
+
+
+// 6. Store the data about each widget instance's usage in a meaningful and organized way.
+//    This could be done in various ways depending on your exact requirements.
+//    Possible options could include storing the data in the database, writing it to a CSV file, or displaying it in the admin area.
+function record_widget_usage($widget_usage)
+{
+	// Store the data in the database.
+	$widget_usage_id = wp_insert_post(
+		array(
+			'post_type' => 'widget_usage',
+			'post_title' => $widget_usage['widget'],
+			'post_status' => 'publish',
+		)
+	);
+
+	// Add the sidebar and widget data as post meta.
+	update_post_meta($widget_usage_id, 'sidebar', $widget_usage['sidebar']);
+	update_post_meta($widget_usage_id, 'widget', $widget_usage['widget']);
+	new SimpleXMLElement('<root/>');
+}
+
+function get_callable_name($callable) {
+    if (is_string($callable)) {
+        // Simple function or static class method
+        $parts = explode('::', $callable);
+        if (count($parts) == 2) {
+            // Static class method
+            return [
+                'class' => $parts[0],
+                'method' => $parts[1]
+            ];
+        } else {
+            // Simple function
+            return [
+                'class' => null,
+                'method' => $parts[0]
+            ];
+        }
+    } elseif (is_array($callable)) {
+		if( is_object( $callable[0] ) ){
+        return [
+            'class' => get_class($callable[0]),
+            'method' => $callable[1]
+        ];
+	}else{
+		return [
+			'class' => $callable[0],
+			'method' => $callable[1]
+		];
+	}
+        // Object method
+    } else {
+        return null;
+    }
+}
